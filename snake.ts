@@ -3,6 +3,7 @@ namespace snake {
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
     export function setup(level: Image) {
+        level = level.clone()
         let w = level.width
         let h = level.height
         let x = w / 2
@@ -40,33 +41,33 @@ namespace snake {
         ]
         let safeCols = [0, 15, 1]
 
-        setFood()
-        setFood()
-        setFood()
-    
+        const bodyv = assets.image`body`
+        const bodyh = assets.image`body`.transposed()
 
-        function drawCell(x: number, y: number, col: number) {
+  
+
+        const drawCell = (x: number, y: number, col: number) => {
             level.setPixel(x, y, col)
             // picture.fillRect(x * dw, y * dh, dw, dh, 14)
             background.fillRect(x * dw, y * dh, dw, dh, col)
         }
     
-        function setFood() {
+        const setFood = () => {
             while (true) {
                 let ix = randint(1, level.width - 1);
                 let iy = randint(1, level.height - 1);
                 if (level.getPixel(ix, iy) != 15) {
                     continue;
                 } else {
-                    drawCell(ix, iy, 1)
+                    drawCell(ix, iy, 5)
                     break;
                 }
             }
         }
 
-        function sletHale() {
+        const sletHale = () => {
             let haleDir = level.getPixel(tx, ty)
-            drawCell(tx, ty, 10)
+            drawCell(tx, ty, 15)
             if (haleDir == 1) {
                 ty += -1
             } else if (haleDir == 2) {
@@ -78,21 +79,21 @@ namespace snake {
             }
         }
 
-        function tegnHoved(x: number, y: number) {
+        const tegnHoved = (x: number, y: number) => {
             background.blit(x * dw, y * dh, dw, dh, headPics[dir - 1], 0, 0, dw, dh, false, false)
         }
 
-        function tegnKrop() {
-            level.setPixel(ox, oy, dir + 16)
+        const tegnKrop = () => {
+            level.setPixel(ox, oy, dir)
             let body = assets.image`bend`
             if (oldDir == dir) {
                 if (oldDir > 2) {
-                    body = assets.image`body`
+                    body = bodyh
                     if (x % 2) {
                         body.flipY()
                     }
                 } else {
-                    body = assets.image`body`
+                    body = bodyv
                     if (y % 2) {
                         body.flipX()
                     }
@@ -101,7 +102,7 @@ namespace snake {
             background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, true, false)
         }
         
-        function keyCheck() {
+        const keyCheck = () => {
             if (controller.up.isPressed() && dir != 2) {
                 nextDir = 1
             } else if (controller.down.isPressed() && dir != 1) {
@@ -124,7 +125,7 @@ namespace snake {
             }
         }
 
-        function move() {
+        const move = () => {
             oldDir = dir
             dir = nextDir
             if (dir == 1) {
@@ -138,6 +139,9 @@ namespace snake {
             }
         }
 
+        setFood()
+        setFood()
+        setFood()
 
         game.onUpdate(function () {
             // color.setColor(13, 0xFF0000, 4)
@@ -149,7 +153,7 @@ namespace snake {
                 oy = y
                 move()
                 let ramtFarve = level.getPixel(x, y)
-                if (ramtFarve == 1) {
+                if (ramtFarve == 5) {
                     music.play(music.melodyPlayable(music.knock), music.PlaybackMode.InBackground)
                     setFood()
                     growRemain += growNext
@@ -185,8 +189,4 @@ namespace snake {
     }        
     
             
-    }
-
-
-
-    // color.startFadeFromCurrent(color.GrayScale, 10000)
+}

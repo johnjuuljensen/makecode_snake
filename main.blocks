@@ -1,1 +1,1 @@
-<xml xmlns="https://developers.google.com/blockly/xml"><block type="pxt-on-start" id="7+@Kbfa7g5/G@Rc|lFK$" x="0" y="0"></block></xml>
+<xml xmlns="https://developers.google.com/blockly/xml"><block type="pxt-on-start" id="7+@Kbfa7g5/G@Rc|lFK$" x="0" y="0"><statement name="HANDLER"><block type="snake_setup" id=",u0.7LprbO_{wcR9`~!D"><value name="level"><shadow type="screen_image_picker" id="7|dpK]ExFBWOZTrEAs0T"><field name="img">assets.image`level_2`</field><data>{"commentRefs":[],"fieldData":{"img":"myImages.image1"}}</data></shadow></value></block></statement></block></xml>
