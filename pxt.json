@@ -5,10 +5,13 @@
         "device": "*"
     },
     "files": [
+        "images.g.jres",
+        "images.g.ts",
         "main.blocks",
         "main.ts",
         "README.md",
-        "assets.json"
+        "assets.json",
+        "snake.ts"
     ],
     "testFiles": [
         "test.ts"
@@ -36,7 +39,7 @@
         "#A4839F",
         "#5C406c",
         "#E5CDC4",
-        "#91463d",
+        "#FFFFFF",
         "#000000"
     ]
 }
