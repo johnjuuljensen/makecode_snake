@@ -5,57 +5,57 @@ namespace myImages {
         switch(helpers.stringTrim(name)) {
             case "image1":
             case "level_2":return img`
-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-efffdddddffdfffffffffffffffffffffffffffe
-efffdffffffdfffffffffffffffffffffffffffe
-effffffffffdffffffffffffdddddffddddffffe
-effffffffffdffffffffffffdffffffffffffffe
-effffffffffdffffffffffffffffffffffdffffe
-effffffffffdffffffffffffddddffdddddffffe
-efffdffffffdfffffffffffffffffffffffffffe
-efffdddffdddfffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-efffffffffffffffffffffffffffddddffdffffe
-efffffffffffffffffffffffffffdfffffdffffe
-efffffffffffffffffffffffffffdfffffdffffe
-efffffffffffffffffffffffffffdfffffdffffe
-efffffffffffffffffffffffffffdffddddffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-effffffffffffffffffffffffffffffffffffffe
-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+1111111111111111111111111111111111111111
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1fffdddddffdfffffffffffffffffffffffffff1
+1fffdffffffdfffffffffffffffffffffffffff1
+1ffffffffffdffffffffffffdddddffddddffff1
+1ffffffffffdffffffffffffdffffffffffffff1
+1ffffffffffdffffffffffffffffffffffdffff1
+1ffffffffffdffffffffffffddddffdddddffff1
+1fffdffffffdfffffffffffffffffffffffffff1
+1fffdddffdddfffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1fffffffffffffffffffffffffffddddffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdffddddffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1111111111111111111111111111111111111111
 `;
             case "image5":
             case "head":return img`
-9 7 7 9 
-5 6 6 5 
-7 7 8 7 
-9 8 7 9 
-`;
-            case "image2":
-            case "bend":return img`
-9 7 8 9 
-8 7 7 7 
-7 7 7 8 
-9 8 7 9 
+f 7 7 f 
+2 5 5 2 
+7 7 6 7 
+f 6 7 f 
 `;
             case "image3":
             case "body":return img`
-9 8 7 9 
-7 8 9 9 
-7 8 9 9 
-9 8 7 9 
+f 6 7 f 
+7 6 f f 
+7 6 f f 
+f 6 7 f 
+`;
+            case "image2":
+            case "bend":return img`
+f 7 6 f 
+6 7 7 7 
+7 7 7 6 
+f 6 7 f 
 `;
         }
         return null;
@@ -74,6 +74,12 @@ eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
         }
         return null;
     })
+
+}
+// Auto-generated code. Do not edit.
+
+// Auto-generated code. Do not edit.
+namespace myTiles {
 
 }
 // Auto-generated code. Do not edit.

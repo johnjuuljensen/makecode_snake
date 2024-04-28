@@ -1,11 +1,11 @@
 namespace snake {
+
     //% blockNamespace=snake
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
-    export function setup(level: Image) {
-        level = level.clone()
-        let w = level.width
-        let h = level.height
+    export function setup(level_: Image) {
+        let w = level_.width
+        let h = level_.height
         let x = w / 2
         let y = h / 2
         let tx = x
@@ -16,8 +16,26 @@ namespace snake {
         let dw = scene.screenWidth() / w
         let dh = scene.screenHeight() / h
 
+        let buffer: Buffer = Buffer.create(w * h);
+        for (let y = 0; y < h; ++y)
+            for (let x = 0; x < w; ++x){
+                let col = level_.getPixel(x, y);
+                col = col === 15 ? 0 : col;
+                buffer.setUint8(y * w + x, col);
+            }
+            
+
+
+        const bufGet = (x: number, y: number) => {
+            return buffer.getUint8(y * w + x);
+        }
+        const bufSet = (x: number, y: number, col: number) => {
+            buffer.setUint8(y * w + x, col);
+        }
+
         let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
-        background.blit(0, 0, background.width, background.height, level, 0, 0, w, h, true, false)
+        background.blit(0, 0, background.width, background.height, level_, 0, 0, w, h, true, false)
+        
         scene.setBackgroundImage(background)
 
         let growNext = 0
@@ -47,26 +65,28 @@ namespace snake {
   
 
         const drawCell = (x: number, y: number, col: number) => {
-            level.setPixel(x, y, col)
-            // picture.fillRect(x * dw, y * dh, dw, dh, 14)
             background.fillRect(x * dw, y * dh, dw, dh, col)
         }
     
         const setFood = () => {
             while (true) {
-                let ix = randint(1, level.width - 1);
-                let iy = randint(1, level.height - 1);
-                if (level.getPixel(ix, iy) != 15) {
+                let ix = randint(1, w - 1);
+                let iy = randint(1, h - 1);
+                if ( bufGet(ix, iy) != 0) {
                     continue;
                 } else {
-                    drawCell(ix, iy, 5)
+                    bufSet(ix, iy, 5);
+                    drawCell(ix, iy, 5);
+
+                    console.log(`${ix},${iy}`)
                     break;
                 }
             }
         }
 
         const sletHale = () => {
-            let haleDir = level.getPixel(tx, ty)
+            let haleDir = bufGet(tx, ty)
+            bufSet(tx, ty, 0);
             drawCell(tx, ty, 15)
             if (haleDir == 1) {
                 ty += -1
@@ -84,7 +104,7 @@ namespace snake {
         }
 
         const tegnKrop = () => {
-            level.setPixel(ox, oy, dir)
+            bufSet(ox, oy, dir);
             let body = assets.image`bend`
             if (oldDir == dir) {
                 if (oldDir > 2) {
@@ -101,6 +121,7 @@ namespace snake {
             }
             background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, true, false)
         }
+
         
         const keyCheck = () => {
             if (controller.up.isPressed() && dir != 2) {
@@ -113,13 +134,13 @@ namespace snake {
                 nextDir = 4
             }
             if (nextDir != dir) {
-                if (nextDir == 1 && safeCols.indexOf(level.getPixel(x, y - 1)) == -1) {
+                if (nextDir == 1 && safeCols.indexOf(bufGet(x, y - 1)) == -1) {
                     nextDir = dir
-                } else if (nextDir == 2 && safeCols.indexOf(level.getPixel(x, y + 1)) == -1) {
+                } else if (nextDir == 2 && safeCols.indexOf(bufGet(x, y + 1)) == -1) {
                     nextDir = dir
-                } else if (nextDir == 3 && safeCols.indexOf(level.getPixel(x - 1, y)) == -1) {
+                } else if (nextDir == 3 && safeCols.indexOf(bufGet(x - 1, y)) == -1) {
                     nextDir = dir
-                } else if (nextDir == 4 && safeCols.indexOf(level.getPixel(x + 1, y)) == -1) {
+                } else if (nextDir == 4 && safeCols.indexOf(bufGet(x + 1, y)) == -1) {
                     nextDir = dir
                 }
             }
@@ -142,7 +163,7 @@ namespace snake {
         setFood()
         setFood()
         setFood()
-
+        game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
             // color.setColor(13, 0xFF0000, 4)
             keyCheck()
@@ -152,7 +173,7 @@ namespace snake {
                 ox = x
                 oy = y
                 move()
-                let ramtFarve = level.getPixel(x, y)
+                let ramtFarve = bufGet(x, y)
                 if (ramtFarve == 5) {
                     music.play(music.melodyPlayable(music.knock), music.PlaybackMode.InBackground)
                     setFood()
@@ -167,9 +188,9 @@ namespace snake {
                         }
                     }
                     if (snakeLength < 5) {
-                        color.setColor(13, 16506837, 10)
+                        //color.setColor(13, 16506837, 10)
                     }
-                } else if (ramtFarve != 15) {
+                } else if (ramtFarve != 0) {
                     info.setScore(snakeLength)
                     game.gameOver(false)
                 }
@@ -177,7 +198,7 @@ namespace snake {
                     growRemain--;
                     snakeLength++;
                     if (snakeLength >= 5) {
-                        color.setColor(13, 11419120, 1000)
+                        //color.setColor(13, 11419120, 1000)
                     }
                 } else {
                     sletHale()

@@ -2,8 +2,7 @@
     "name": "snake",
     "description": "",
     "dependencies": {
-        "device": "*",
-        "Color Fading": "github:jwunderl/pxt-color#v0.2.3"
+        "device": "*"
     },
     "files": [
         "images.g.jres",
@@ -24,23 +23,5 @@
     "supportedTargets": [
         "arcade"
     ],
-    "preferredEditor": "tsprj",
-    "palette": [
-        "#000000",
-        "#000000",
-        "#000000",
-        "#000000",
-        "#000000",
-        "#FF2121",
-        "#FFF700",
-        "#78DC52",
-        "#0EC44D",
-        "#0B471A",
-        "#8E2EC4",
-        "#A4839F",
-        "#5C406c",
-        "#E5CDC4",
-        "#FFFFFF",
-        "#000000"
-    ]
+    "preferredEditor": "tsprj"
 }
