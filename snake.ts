@@ -167,7 +167,7 @@ namespace snake {
                         }
                     }
                     if (snakeLength < 5) {
-                        //color.setColor(13, 16506837, 10)
+                        color.setColor(13, 16506837, 10)
                     }
                 } else if (ramtFarve != 15) {
                     info.setScore(snakeLength)
@@ -177,7 +177,7 @@ namespace snake {
                     growRemain--;
                     snakeLength++;
                     if (snakeLength >= 5) {
-                        //color.setColor(13, 11419120, 1000)
+                        color.setColor(13, 11419120, 1000)
                     }
                 } else {
                     sletHale()
