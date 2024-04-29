@@ -29,6 +29,11 @@ namespace snake {
         const left: number = 1; // 0b10
         const right: number = 3;// 0b11
         let dirs = [up, down, left, right];
+        let dirQueue: number[] = [];
+        controller.up.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(up));
+        controller.down.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(down));
+        controller.left.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(left));
+        controller.right.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(right));
 
         let w = level_.width
         let h = level_.height
@@ -124,25 +129,19 @@ namespace snake {
             background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, true, false)
         }
 
-        
-        const keyCheck = () => {
-            if (controller.up.isPressed() && dir != down) {
-                nextDir = up;
-            } else if (controller.down.isPressed() && dir != up) {
-                nextDir = down;
-            } else if (controller.left.isPressed() && dir != right) {
-                nextDir = left;
-            } else if (controller.right.isPressed() && dir != left) {
-                nextDir = right;
-            }
-
-            if (nextDir != dir && safeCols.indexOf(bufGetDir(x, y, nextDir)) == -1) {
-                nextDir = dir;
-            }
-        }
 
         const move = () => {
             oldDir = dir;
+            if (dirQueue.length) {
+                nextDir = dirQueue.shift();
+
+                if (nextDir != dir && safeCols.indexOf(bufGetDir(x, y, nextDir)) == -1) {
+                    nextDir = dir;
+                    dirQueue = [];
+                }
+            }
+
+
             dir = nextDir;
             [x,y] = applyDir(x, y, dir);
         }
@@ -153,7 +152,7 @@ namespace snake {
         game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
             // color.setColor(13, 0xFF0000, 4)
-            keyCheck()
+            //keyCheck()
             const time = game.runtime()
             if (time - oldTime > dtime) {
                 oldTime = time
