@@ -12,8 +12,7 @@ namespace snake {
         dir = dir & 3;
         const x = (dir-2) * (1 - mul);
         const y = (dir-2) * mul;
-        const res = [x , y];
-        return res;
+        return [x , y];
     }
 
     function applyDir(x: number, y: number, dir: number) {
@@ -25,10 +24,11 @@ namespace snake {
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
     export function setup(level_: Image) {
-        const up = 5;   // 0b101
-        const down = 7; // 0b111
-        const left = 1; // 0b10
-        const right = 3;// 0b11
+        const up: number = 5;   // 0b101
+        const down: number = 7; // 0b111
+        const left: number = 1; // 0b10
+        const right: number = 3;// 0b11
+        let dirs = [up, down, left, right];
 
         let w = level_.width
         let h = level_.height
@@ -51,6 +51,10 @@ namespace snake {
             }
 
         const bufGet = (x: number, y: number) => buffer.getUint8(y * w + x);
+        const bufGetDir = (x: number, y: number, dir: number) => {
+            [x, y] = applyDir(x, y, dir);
+            return bufGet(x, y);
+        }
         const bufSet = (x: number, y: number, col: number) => buffer.setUint8(y * w + x, col);
 
         let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
@@ -69,7 +73,7 @@ namespace snake {
         headPics[left] = assets.image`head`.transposed();
         headPics[right] = assets.image`head`.transposed(); headPics[right].flipX();
 
-        let safeCols = [0, 15, 1]
+        let safeCols = [0, 2, 15]
 
         const bodyve = assets.image`body`;
         const bodyvu = assets.image`body`; bodyvu.flipX();
@@ -87,8 +91,8 @@ namespace snake {
             let ri = randint(1, n - 1);
             for (let i = 0; i < n; ++i) {
                 if (buffer.getUint8(ri) === 0) {
-                    buffer.setUint8(ri, 5);
-                    drawCell(ri%w, ri/w|0, 5);
+                    buffer.setUint8(ri, 2);
+                    drawCell(ri%w, ri/w|0, 2);
                     return;
                 }
 
@@ -132,16 +136,8 @@ namespace snake {
                 nextDir = right;
             }
 
-            if (nextDir != dir) {
-                if (nextDir == up && safeCols.indexOf(bufGet(x, y - 1)) == -1) {
-                    nextDir = dir
-                } else if (nextDir == down && safeCols.indexOf(bufGet(x, y + 1)) == -1) {
-                    nextDir = dir
-                } else if (nextDir == left && safeCols.indexOf(bufGet(x - 1, y)) == -1) {
-                    nextDir = dir
-                } else if (nextDir == right && safeCols.indexOf(bufGet(x + 1, y)) == -1) {
-                    nextDir = dir
-                }
+            if (nextDir != dir && safeCols.indexOf(bufGetDir(x, y, nextDir)) == -1) {
+                nextDir = dir;
             }
         }
 
@@ -165,7 +161,7 @@ namespace snake {
                 oy = y
                 move()
                 let ramtFarve = bufGet(x, y)
-                if (ramtFarve == 5) {
+                if (ramtFarve == 2) {
                     music.play(music.melodyPlayable(music.knock), music.PlaybackMode.InBackground)
                     setFood()
                     growRemain += growNext
@@ -179,6 +175,7 @@ namespace snake {
                         }
                     }
                     if (snakeLength < 5) {
+                        background.replace(10,13);
                         //color.setColor(13, 16506837, 10)
                     }
                 } else if (ramtFarve != 0) {
@@ -189,6 +186,7 @@ namespace snake {
                     growRemain--;
                     snakeLength++;
                     if (snakeLength >= 5) {
+                        background.replace(13, 10);
                         //color.setColor(13, 11419120, 1000)
                     }
                 } else {
