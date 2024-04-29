@@ -4,6 +4,8 @@ namespace snake {
         [n: number]: Image        
     }
 
+// coprime 1200 = 197
+
     function decodeDir(dir: number) {
         if (dir === 0) return [0, 0];
         const mul = dir >> 2;
@@ -11,7 +13,6 @@ namespace snake {
         const x = (dir-2) * (1 - mul);
         const y = (dir-2) * mul;
         const res = [x , y];
-        //console.log(`${dir} -> ${x}, ${y}`);
         return res;
     }
 
@@ -70,32 +71,35 @@ namespace snake {
 
         let safeCols = [0, 15, 1]
 
-        const bodyv = assets.image`body`
-        const bodyh = assets.image`body`.transposed()
+        const bodyve = assets.image`body`;
+        const bodyvu = assets.image`body`; bodyvu.flipX();
+        const bodyhe = assets.image`body`.transposed();
+        const bodyhu = assets.image`body`.transposed(); bodyhu.flipY();
 
         const drawCell = (x: number, y: number, col: number) => {
             background.fillRect(x * dw, y * dh, dw, dh, col)
         }
     
         const setFood = () => {
-            while (true) {
-                let ix = randint(1, w - 1);
-                let iy = randint(1, h - 1);
-                if ( bufGet(ix, iy) != 0) {
-                    continue;
-                } else {
-                    bufSet(ix, iy, 5);
-                    drawCell(ix, iy, 5);
-
-                    //console.log(`${ix},${iy}`)
-                    break;
+            // https://lemire.me/blog/2017/09/18/visiting-all-values-in-an-array-exactly-once-in-random-order/
+            const prime = 197;
+            const n = w * h;
+            let ri = randint(1, n - 1);
+            for (let i = 0; i < n; ++i) {
+                if (buffer.getUint8(ri) === 0) {
+                    buffer.setUint8(ri, 5);
+                    drawCell(ri%w, ri/w|0, 5);
+                    return;
                 }
+
+                ri = (ri + prime < n) ? 
+                    ri + prime : 
+                    ri + prime - n;
             }
         }
 
         const sletHale = () => {
             let haleDir = bufGet(tx, ty);
-            //console.log(haleDir);
             bufSet(tx, ty, 0);
             drawCell(tx, ty, 15);
             [tx, ty] = applyDir(tx, ty, haleDir);
@@ -109,17 +113,9 @@ namespace snake {
             bufSet(ox, oy, dir);
             let body = assets.image`bend`
             if (oldDir == dir) {
-                if (oldDir < 4) {
-                    body = bodyh
-                    if (x % 2) {
-                        body.flipY()
-                    }
-                } else {
-                    body = bodyv
-                    if (y % 2) {
-                        body.flipX()
-                    }
-                }
+                body = oldDir < 4
+                    ? (x % 2 ? bodyhu : bodyhe)
+                    : (y % 2 ? bodyvu : bodyve);
             }
             background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, true, false)
         }
@@ -135,7 +131,7 @@ namespace snake {
             } else if (controller.right.isPressed() && dir != left) {
                 nextDir = right;
             }
-            
+
             if (nextDir != dir) {
                 if (nextDir == up && safeCols.indexOf(bufGet(x, y - 1)) == -1) {
                     nextDir = dir
