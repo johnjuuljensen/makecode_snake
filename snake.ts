@@ -6,13 +6,31 @@ namespace snake {
 
 // coprime 1200 = 197
 
-    function decodeDir(dir: number) {
+    function normalizeDir(dir: number) {
         if (dir === 0) return [0, 0];
-        const mul = dir >> 2;
-        dir = dir & 3;
-        const x = (dir-2) * (1 - mul);
-        const y = (dir-2) * mul;
+        const isY = dir < 6 ? 0 : 1;
+        dir = dir - isY * 5 - 3;
+        const isJump = Math.abs(dir) > 1 ? 1 : 0;
+        dir = isJump ? dir / 2 : dir;
+        return [dir, isY, isJump];
+    }
+
+    
+    function decodeDir(dir: number) {
+        let isY = 0;
+        let isJump = 0;
+        [dir, isY, isJump] = normalizeDir(dir);
+        dir *= isJump ? 5 : 1;
+        const x = dir * (1 - isY);
+        const y = dir * isY;
         return [x , y];
+    }
+
+    function jumpDir(dir: number) {
+        let mul = 0;
+        [dir, mul] = normalizeDir(dir);
+        dir *= 2;
+        return dir + mul * 5 + 3;
     }
 
     function applyDir(x: number, y: number, dir: number) {
@@ -24,16 +42,32 @@ namespace snake {
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
     export function setup(level_: Image) {
-        const up: number = 5;   // 0b101
-        const down: number = 7; // 0b111
-        const left: number = 1; // 0b10
-        const right: number = 3;// 0b11
+        const breakableWallCol = 13;
+        const foodCol = 14;
+
+        const dirSplit: number = 6;
+        const up: number = 7;   
+        const down: number = 9; 
+        const left: number = 2; 
+        const right: number = 4;
         let dirs = [up, down, left, right];
         let dirQueue: number[] = [];
-        controller.up.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(up));
-        controller.down.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(down));
-        controller.left.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(left));
-        controller.right.onEvent(ControllerButtonEvent.Pressed, () => dirQueue.push(right));
+        let dir = down;
+        let oldDir = dir, nextDir = dir;
+
+        const addIfValid = (newDir: number) => {
+            if (decodeDir(newDir)[1] !== decodeDir(dirQueue[dirQueue.length-1] || dir)[1]) {
+                dirQueue.push(newDir)
+            }
+        };
+
+        controller.up.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(up));
+        controller.down.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(down));
+        controller.left.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(left));
+        controller.right.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(right));
+        controller.A.onEvent(ControllerButtonEvent.Pressed, () => {
+            dirQueue = dirQueue.concat([jumpDir(dir), dir]);
+        });
 
         let w = level_.width
         let h = level_.height
@@ -46,6 +80,10 @@ namespace snake {
         let dtime = 100
         let dw = scene.screenWidth() / w
         let dh = scene.screenHeight() / h
+        let growNext = 0, growRemain = 20
+        let oldTime = 0
+        let snakeLength = 1
+
 
         let buffer: Buffer = Buffer.create(w * h);
         for (let y = 0; y < h; ++y)
@@ -66,19 +104,14 @@ namespace snake {
         background.blit(0, 0, background.width, background.height, level_, 0, 0, w, h, true, false)
         scene.setBackgroundImage(background)
 
-        let growNext = 0, growRemain = 0
-        let oldTime = 0
-        let dir = down
-        let oldDir = dir, nextDir = dir
-        let snakeLength = 1
 
         let headPics: ImageMap = {};
-        headPics[up] = assets.image`head`;
-        headPics[down] = assets.image`head`; headPics[down].flipY();
-        headPics[left] = assets.image`head`.transposed();
-        headPics[right] = assets.image`head`.transposed(); headPics[right].flipX();
+        headPics[up] = headPics[up-1] = assets.image`head`;
+        headPics[down] = headPics[down+1] = assets.image`head`; headPics[down].flipY();
+        headPics[left] = headPics[left-1] = assets.image`head`.transposed();
+        headPics[right] = headPics[right+1] = assets.image`head`.transposed(); headPics[right].flipX();
 
-        let safeCols = [0, 2, 15]
+        let safeCols = [0, foodCol, 15]
 
         const bodyve = assets.image`body`;
         const bodyvu = assets.image`body`; bodyvu.flipX();
@@ -96,8 +129,8 @@ namespace snake {
             let ri = randint(1, n - 1);
             for (let i = 0; i < n; ++i) {
                 if (buffer.getUint8(ri) === 0) {
-                    buffer.setUint8(ri, 2);
-                    drawCell(ri%w, ri/w|0, 2);
+                    buffer.setUint8(ri, foodCol);
+                    drawCell(ri%w, ri/w|0, foodCol);
                     return;
                 }
 
@@ -122,7 +155,7 @@ namespace snake {
             bufSet(ox, oy, dir);
             let body = assets.image`bend`
             if (oldDir == dir) {
-                body = oldDir < 4
+                body = oldDir < dirSplit
                     ? (x % 2 ? bodyhu : bodyhe)
                     : (y % 2 ? bodyvu : bodyve);
             }
@@ -132,15 +165,9 @@ namespace snake {
 
         const move = () => {
             oldDir = dir;
-            if (dirQueue.length) {
+            if (dirQueue.length && safeCols.indexOf(bufGetDir(x, y, dirQueue[0])) !== -1) {
                 nextDir = dirQueue.shift();
-
-                if (nextDir != dir && safeCols.indexOf(bufGetDir(x, y, nextDir)) == -1) {
-                    nextDir = dir;
-                    dirQueue = [];
-                }
             }
-
 
             dir = nextDir;
             [x,y] = applyDir(x, y, dir);
@@ -151,8 +178,6 @@ namespace snake {
         setFood()
         game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
-            // color.setColor(13, 0xFF0000, 4)
-            //keyCheck()
             const time = game.runtime()
             if (time - oldTime > dtime) {
                 oldTime = time
@@ -160,12 +185,12 @@ namespace snake {
                 oy = y
                 move()
                 let ramtFarve = bufGet(x, y)
-                if (ramtFarve == 2) {
+                if (ramtFarve == foodCol) {
                     music.play(music.melodyPlayable(music.knock), music.PlaybackMode.InBackground)
                     setFood()
                     growRemain += growNext
                     growNext += 1
-                } else if (ramtFarve == 13) {
+                } else if (ramtFarve == breakableWallCol) {
                     for (let i = 0; i <= 2; i++) {
                         sletHale()
                         snakeLength += -1
@@ -175,7 +200,6 @@ namespace snake {
                     }
                     if (snakeLength < 5) {
                         background.replace(10,13);
-                        //color.setColor(13, 16506837, 10)
                     }
                 } else if (ramtFarve != 0) {
                     info.setScore(snakeLength)
@@ -186,7 +210,6 @@ namespace snake {
                     snakeLength++;
                     if (snakeLength >= 5) {
                         background.replace(13, 10);
-                        //color.setColor(13, 11419120, 1000)
                     }
                 } else {
                     sletHale()
