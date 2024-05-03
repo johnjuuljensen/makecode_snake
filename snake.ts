@@ -4,37 +4,28 @@ namespace snake {
         [n: number]: Image        
     }
 
-// coprime 1200 = 197
-
-    function normalizeDir(dir: number) {
-        if (dir === 0) return [0, 0];
-        const isY = dir < 6 ? 0 : 1;
-        dir = dir - isY * 5 - 3;
-        const isJump = Math.abs(dir) > 1 ? 1 : 0;
-        dir = isJump ? dir / 2 : dir;
-        return [dir, isY, isJump];
-    }
-
+    // coprime 1200 = 197
     
-    function decodeDir(dir: number) {
-        let isY = 0;
-        let isJump = 0;
-        [dir, isY, isJump] = normalizeDir(dir);
-        dir *= isJump ? 5 : 1;
-        const x = dir * (1 - isY);
-        const y = dir * isY;
-        return [x , y];
+    function encodeDir(dir: number, dist: number) {
+       return (dir & 3) | ((dist & 15) << 2);
     }
 
-    function jumpDir(dir: number) {
-        let mul = 0;
-        [dir, mul] = normalizeDir(dir);
-        dir *= 2;
-        return dir + mul * 5 + 3;
+    function decodeDir(dircode: number) {
+        return [
+            (dircode & 3),
+            (dircode>>2) & 15
+        ];
     }
 
-    function applyDir(x: number, y: number, dir: number) {
-        const d = decodeDir(dir);
+    function dirToCoord(dircode: number) {
+        const [dir, dist] = decodeDir(dircode);
+        const xOffset = dir === 0 ? -1 : dir === 1 ? 1 : 0;
+        const yOffset = dir === 2 ? -1 : dir === 3 ? 1 : 0;
+        return [xOffset*dist , yOffset*dist];
+    }
+
+    function applyDir(x: number, y: number, dircode: number) {
+        const d = dirToCoord(dircode);
         return [x + d[0], y + d[1]];
     }
 
@@ -45,18 +36,14 @@ namespace snake {
         const breakableWallCol = 13;
         const foodCol = 14;
 
-        const dirSplit: number = 6;
-        const up: number = 7;   
-        const down: number = 9; 
-        const left: number = 2; 
-        const right: number = 4;
-        let dirs = [up, down, left, right];
+        const [left, right, up, down] = [0, 1, 2, 3];
         let dirQueue: number[] = [];
-        let dir = down;
-        let oldDir = dir, nextDir = dir;
+        let curDir = encodeDir(down, 1);
+        let oldDir = curDir, nextDir = curDir;
 
         const addIfValid = (newDir: number) => {
-            if (decodeDir(newDir)[1] !== decodeDir(dirQueue[dirQueue.length-1] || dir)[1]) {
+            newDir = encodeDir(newDir, 1);
+            if (newDir !== (dirQueue[dirQueue.length-1] || curDir)) {
                 dirQueue.push(newDir)
             }
         };
@@ -66,7 +53,10 @@ namespace snake {
         controller.left.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(left));
         controller.right.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(right));
         controller.A.onEvent(ControllerButtonEvent.Pressed, () => {
-            dirQueue = dirQueue.concat([jumpDir(dir), dir]);
+            if (!dirQueue.length) {
+                const [dir] = decodeDir(curDir);
+                dirQueue = [encodeDir(dir, 5), curDir];
+            }
         });
 
         let w = level_.width
@@ -106,10 +96,10 @@ namespace snake {
 
 
         let headPics: ImageMap = {};
-        headPics[up] = headPics[up-1] = assets.image`head`;
-        headPics[down] = headPics[down+1] = assets.image`head`; headPics[down].flipY();
-        headPics[left] = headPics[left-1] = assets.image`head`.transposed();
-        headPics[right] = headPics[right+1] = assets.image`head`.transposed(); headPics[right].flipX();
+        headPics[up] = assets.image`head`;
+        headPics[down] = assets.image`head`; headPics[down].flipY();
+        headPics[left] = assets.image`head`.transposed();
+        headPics[right] = assets.image`head`.transposed(); headPics[right].flipX();
 
         let safeCols = [0, foodCol, 15]
 
@@ -148,14 +138,15 @@ namespace snake {
         }
 
         const tegnHoved = (x: number, y: number) => {
+            const [dir] = decodeDir(curDir);
             background.blit(x * dw, y * dh, dw, dh, headPics[dir], 0, 0, dw, dh, false, false)
         }
 
         const tegnKrop = () => {
-            bufSet(ox, oy, dir);
+            bufSet(ox, oy, curDir);
             let body = assets.image`bend`
-            if (oldDir == dir) {
-                body = oldDir < dirSplit
+            if (oldDir == curDir) {
+                body = oldDir < encodeDir(up, 1)
                     ? (x % 2 ? bodyhu : bodyhe)
                     : (y % 2 ? bodyvu : bodyve);
             }
@@ -164,13 +155,16 @@ namespace snake {
 
 
         const move = () => {
-            oldDir = dir;
-            if (dirQueue.length && safeCols.indexOf(bufGetDir(x, y, dirQueue[0])) !== -1) {
+            oldDir = curDir;
+            if (dirQueue.length) {
                 nextDir = dirQueue.shift();
+                if (safeCols.indexOf(bufGetDir(x, y, nextDir)) === -1) {
+                    nextDir = curDir;
+                }
             }
 
-            dir = nextDir;
-            [x,y] = applyDir(x, y, dir);
+            curDir = nextDir;
+            [x,y] = applyDir(x, y, curDir);
         }
 
         setFood()
@@ -184,7 +178,7 @@ namespace snake {
                 ox = x
                 oy = y
                 move()
-                let ramtFarve = bufGet(x, y)
+                let ramtFarve = bufGet(x, y);
                 if (ramtFarve == foodCol) {
                     music.play(music.melodyPlayable(music.knock), music.PlaybackMode.InBackground)
                     setFood()
