@@ -1,31 +1,31 @@
 namespace snake {
 
     interface ImageMap {
-        [n: number]: Image        
+        [n: number]: Image
     }
 
     // coprime 1200 = 197
-    
-    function encodeDir(dir: number, dist: number) {
-       return (dir & 3) | ((dist & 15) << 2);
+
+    function encodeVelocity(dir: number, dist: number) {
+        return (dir & 3) | ((dist & 15) << 2);
     }
 
-    function decodeDir(dircode: number) {
+    function decodeVelocity(dircode: number) {
         return [
             (dircode & 3),
-            (dircode>>2) & 15
+            (dircode >> 2) & 15
         ];
     }
 
-    function dirToCoord(dircode: number) {
-        const [dir, dist] = decodeDir(dircode);
+    function velocityToCoord(velocity: number) {
+        const [dir, dist] = decodeVelocity(velocity);
         const xOffset = dir === 0 ? -1 : dir === 1 ? 1 : 0;
         const yOffset = dir === 2 ? -1 : dir === 3 ? 1 : 0;
-        return [xOffset*dist , yOffset*dist];
+        return [xOffset * dist, yOffset * dist];
     }
 
-    function applyDir(x: number, y: number, dircode: number) {
-        const d = dirToCoord(dircode);
+    function applyVelocity(x: number, y: number, velocity: number) {
+        const d = velocityToCoord(velocity);
         return [x + d[0], y + d[1]];
     }
 
@@ -38,12 +38,12 @@ namespace snake {
 
         const [left, right, up, down] = [0, 1, 2, 3];
         let dirQueue: number[] = [];
-        let curDir = encodeDir(down, 1);
-        let oldDir = curDir, nextDir = curDir;
+        let curVelocity = encodeVelocity(down, 1);
+        let oldVelocity = curVelocity, nextVelocity = curVelocity;
 
         const addIfValid = (newDir: number) => {
-            newDir = encodeDir(newDir, 1);
-            if (newDir !== (dirQueue[dirQueue.length-1] || curDir)) {
+            newDir = encodeVelocity(newDir, 1);
+            if (newDir !== (dirQueue[dirQueue.length - 1] || curVelocity)) {
                 dirQueue.push(newDir)
             }
         };
@@ -54,8 +54,8 @@ namespace snake {
         controller.right.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(right));
         controller.A.onEvent(ControllerButtonEvent.Pressed, () => {
             if (!dirQueue.length) {
-                const [dir] = decodeDir(curDir);
-                dirQueue = [encodeDir(dir, 5), curDir];
+                const [dir] = decodeVelocity(curVelocity);
+                dirQueue = [encodeVelocity(dir, 5), curVelocity];
             }
         });
 
@@ -67,7 +67,7 @@ namespace snake {
         let ty = y
         let oy = x
         let ox = y
-        let dtime = 100
+        let speed = 100;
         let dw = scene.screenWidth() / w
         let dh = scene.screenHeight() / h
         let growNext = 0, growRemain = 20
@@ -77,15 +77,15 @@ namespace snake {
 
         let buffer: Buffer = Buffer.create(w * h);
         for (let y = 0; y < h; ++y)
-            for (let x = 0; x < w; ++x){
+            for (let x = 0; x < w; ++x) {
                 let col = level_.getPixel(x, y);
                 col = col === 15 ? 0 : col;
                 buffer.setUint8(y * w + x, col);
             }
 
         const bufGet = (x: number, y: number) => buffer.getUint8(y * w + x);
-        const bufGetDir = (x: number, y: number, dir: number) => {
-            [x, y] = applyDir(x, y, dir);
+        const bufGetDir = (x: number, y: number, velocity: number) => {
+            [x, y] = applyVelocity(x, y, velocity);
             return bufGet(x, y);
         }
         const bufSet = (x: number, y: number, col: number) => buffer.setUint8(y * w + x, col);
@@ -111,7 +111,7 @@ namespace snake {
         const drawCell = (x: number, y: number, col: number) => {
             background.fillRect(x * dw, y * dh, dw, dh, col)
         }
-    
+
         const setFood = () => {
             // https://lemire.me/blog/2017/09/18/visiting-all-values-in-an-array-exactly-once-in-random-order/
             const prime = 197;
@@ -120,12 +120,12 @@ namespace snake {
             for (let i = 0; i < n; ++i) {
                 if (buffer.getUint8(ri) === 0) {
                     buffer.setUint8(ri, foodCol);
-                    drawCell(ri%w, ri/w|0, foodCol);
+                    drawCell(ri % w, ri / w | 0, foodCol);
                     return;
                 }
 
-                ri = (ri + prime < n) ? 
-                    ri + prime : 
+                ri = (ri + prime < n) ?
+                    ri + prime :
                     ri + prime - n;
             }
         }
@@ -134,19 +134,21 @@ namespace snake {
             let haleDir = bufGet(tx, ty);
             bufSet(tx, ty, 0);
             drawCell(tx, ty, 15);
-            [tx, ty] = applyDir(tx, ty, haleDir);
+            [tx, ty] = applyVelocity(tx, ty, haleDir);
         }
 
-        const tegnHoved = (x: number, y: number) => {
-            const [dir] = decodeDir(curDir);
-            background.blit(x * dw, y * dh, dw, dh, headPics[dir], 0, 0, dw, dh, false, false)
+        const tegnHoved = (dtime: number) => {
+            const [dir] = decodeVelocity(curVelocity);
+            const tempX = x * dtime + ox * (1 - dtime);
+            const tempY = y * dtime + oy * (1 - dtime);
+            background.blit(tempX * dw, tempY * dh, dw, dh, headPics[dir], 0, 0, dw, dh, false, false)
         }
 
         const tegnKrop = () => {
-            bufSet(ox, oy, curDir);
+            bufSet(ox, oy, curVelocity);
             let body = assets.image`bend`
-            if (oldDir == curDir) {
-                body = oldDir < encodeDir(up, 1)
+            if (oldVelocity == curVelocity) {
+                body = oldVelocity < encodeVelocity(up, 1)
                     ? (x % 2 ? bodyhu : bodyhe)
                     : (y % 2 ? bodyvu : bodyve);
             }
@@ -155,16 +157,16 @@ namespace snake {
 
 
         const move = () => {
-            oldDir = curDir;
+            oldVelocity = curVelocity;
             if (dirQueue.length) {
-                nextDir = dirQueue.shift();
-                if (safeCols.indexOf(bufGetDir(x, y, nextDir)) === -1) {
-                    nextDir = curDir;
+                nextVelocity = dirQueue.shift();
+                if (safeCols.indexOf(bufGetDir(x, y, nextVelocity)) === -1) {
+                    nextVelocity = curVelocity;
                 }
             }
 
-            curDir = nextDir;
-            [x,y] = applyDir(x, y, curDir);
+            curVelocity = nextVelocity;
+            [x, y] = applyVelocity(x, y, curVelocity);
         }
 
         setFood()
@@ -172,8 +174,17 @@ namespace snake {
         setFood()
         game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
-            const time = game.runtime()
-            if (time - oldTime > dtime) {
+            const time = game.runtime();
+            if (oldTime === 0) {
+                oldTime = time-speed;
+            }
+            const [curDir] = decodeVelocity(curVelocity);
+            const aboutToHitSomething =
+                bufGetDir(x, y, curVelocity) !== 0
+                || bufGetDir(x, y, encodeVelocity(curDir, 2));
+            speed = aboutToHitSomething ? 400 : 100;
+
+            if (time - oldTime >= speed) {
                 oldTime = time
                 ox = x
                 oy = y
@@ -193,7 +204,7 @@ namespace snake {
                         }
                     }
                     if (snakeLength < 5) {
-                        background.replace(10,13);
+                        background.replace(10, 13);
                     }
                 } else if (ramtFarve != 0) {
                     info.setScore(snakeLength)
@@ -206,13 +217,13 @@ namespace snake {
                         background.replace(13, 10);
                     }
                 } else {
-                    sletHale()
+                    sletHale();
                 }
-                tegnKrop()
-                tegnHoved(x, y)
             }
+            tegnKrop();
+            tegnHoved((time - oldTime) / speed);
         })
-    }        
-    
-            
+    }
+
+
 }
