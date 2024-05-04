@@ -36,26 +36,40 @@ namespace myImages {
 1ffffffffffffffffffffffffffffffffffffff1
 1111111111111111111111111111111111111111
 `;
-            case "image5":
-            case "head":return img`
-f 7 7 f 
-2 5 5 2 
-7 7 6 7 
-f 6 7 f 
-`;
-            case "image3":
-            case "body":return img`
-f 6 7 f 
-7 6 f f 
-7 6 f f 
-f 6 7 f 
-`;
             case "image2":
             case "bend":return img`
 f 7 6 f 
 6 7 7 7 
 7 7 7 6 
 f 6 7 f 
+`;
+            case "image5":
+            case "head_v":return img`
+f 7 7 f 
+2 5 5 2 
+7 7 6 7 
+f 6 7 f 
+`;
+            case "image4":
+            case "head_h":return img`
+f 7 2 f 
+6 7 5 7 
+7 6 5 7 
+f 7 2 f 
+`;
+            case "image3":
+            case "body_v":return img`
+f 6 7 f 
+7 6 f f 
+7 6 f f 
+f 6 7 f 
+`;
+            case "image6":
+            case "body_h":return img`
+f 7 7 f 
+6 6 6 6 
+7 f f 7 
+f f f f 
 `;
         }
         return null;

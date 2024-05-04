@@ -47,13 +47,17 @@ namespace snake {
         let ty = y
         let oy = x
         let ox = y
-        const defaultSpeed = 100;
+        const defaultSpeed = 150;
         let speed = defaultSpeed;
         let dw = scene.screenWidth() / w
         let dh = scene.screenHeight() / h
         let growNext = 1, growRemain = 20
         let oldTime = 0
         let snakeLength = 1
+
+        let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
+        background.blit(0, 0, background.width, background.height, level_, 0, 0, w, h, true, false)
+        scene.setBackgroundImage(background);
 
         const breakableWallCol = 13;
         const foodCol = 14;
@@ -83,8 +87,8 @@ namespace snake {
         });
 
 
-
         let buffer: Buffer = Buffer.create(w * h);
+
         for (let y = 0; y < h; ++y)
             for (let x = 0; x < w; ++x) {
                 let col = level_.getPixel(x, y);
@@ -99,24 +103,20 @@ namespace snake {
         }
         const bufSet = (x: number, y: number, col: number) => buffer.setUint8(y * w + x, col);
 
-        let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
-        background.blit(0, 0, background.width, background.height, level_, 0, 0, w, h, true, false)
-        scene.setBackgroundImage(background)
 
 
         let headPics: ImageMap = {};
-        headPics[up] = assets.image`head`;
-        headPics[down] = assets.image`head`; headPics[down].flipY();
-        headPics[left] = assets.image`head`.transposed();
-        headPics[right] = assets.image`head`.transposed(); headPics[right].flipX();
+        headPics[up] = assets.image`head_v`;
+        headPics[down] = assets.image`head_v`; headPics[down].flipY();
+        headPics[left] = assets.image`head_h`;
+        headPics[right] = assets.image`head_h`; headPics[right].flipX();
 
-        let safeCols = [0, foodCol, 15]
+         let safeCols = [0, foodCol, 15]
 
-        const bodyve = assets.image`body`;
-        const bodyvu = assets.image`body`; bodyvu.flipX();
-        const bodyhe = assets.image`body`.transposed();
-        const bodyhu = assets.image`body`.transposed(); bodyhu.flipY();
-
+        const bodyve = assets.image`body_v`;
+        const bodyvu = assets.image`body_v`; bodyvu.flipX();
+        const bodyhe = assets.image`body_h`;
+        const bodyhu = assets.image`body_h`; bodyhu.flipY();
         const drawCell = (x: number, y: number, col: number) => {
             background.fillRect(x * dw, y * dh, dw, dh, col)
         }
@@ -182,6 +182,8 @@ namespace snake {
         setFood()
         setFood()
         setFood()
+
+        
         //game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
             const time = game.runtime();
@@ -237,6 +239,4 @@ namespace snake {
             tegnHoved((time - oldTime) / speed);
         })
     }
-
-
 }
