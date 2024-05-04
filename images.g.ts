@@ -3,39 +3,6 @@ namespace myImages {
 
     helpers._registerFactory("image", function(name: string) {
         switch(helpers.stringTrim(name)) {
-            case "image1":
-            case "level_2":return img`
-1111111111111111111111111111111111111111
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1fffdddddffdfffffffffffffffffffffffffff1
-1fffdffffffdfffffffffffffffffffffffffff1
-1ffffffffffdffffffffffffdddddffddddffff1
-1ffffffffffdffffffffffffdffffffffffffff1
-1ffffffffffdffffffffffffffffffffffdffff1
-1ffffffffffdffffffffffffddddffdddddffff1
-1fffdffffffdfffffffffffffffffffffffffff1
-1fffdddffdddfffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1fffffffffffffffffffffffffffddddffdffff1
-1fffffffffffffffffffffffffffdfffffdffff1
-1fffffffffffffffffffffffffffdfffffdffff1
-1fffffffffffffffffffffffffffdfffffdffff1
-1fffffffffffffffffffffffffffdffddddffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1ffffffffffffffffffffffffffffffffffffff1
-1111111111111111111111111111111111111111
-`;
             case "image2":
             case "bend":return img`
 f 7 6 f 
@@ -71,6 +38,39 @@ f 7 7 f
 7 f f 7 
 f f f f 
 `;
+            case "image1":
+            case "level_2":return img`
+1111111111111111111111111111111111111111
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1fffdddddffdfffffffffffffffffffffffffff1
+1fffdffffffdfffffffffffffffffffffffffff1
+1ffffffffffdffffffffffffdddddffddddffff1
+1ffffffffffdffffffffffffdffffffffffffff1
+1ffffffffffdffffffffffffffffffffffdffff1
+1ffffffffffdffffffffffffddddffdddddffff1
+1fffdffffffdfffffffffffffffffffffffffff1
+1fffdddffdddfffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1fffffffffffffffffffffffffffddddffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdfffffdffff1
+1fffffffffffffffffffffffffffdffddddffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1ffffffffffffffffffffffffffffffffffffff1
+1111111111111111111111111111111111111111
+`;
         }
         return null;
     })
@@ -88,12 +88,6 @@ f f f f
         }
         return null;
     })
-
-}
-// Auto-generated code. Do not edit.
-
-// Auto-generated code. Do not edit.
-namespace myTiles {
 
 }
 // Auto-generated code. Do not edit.

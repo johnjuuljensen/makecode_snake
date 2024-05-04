@@ -38,9 +38,9 @@ namespace snake {
     //% blockNamespace=snake
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
-    export function setup(level_: Image) {
-        let w = level_.width
-        let h = level_.height
+    export function setup(level: Image) {
+        let w = level.width
+        let h = level.height
         let x = w / 2
         let y = h / 2
         let tx = x
@@ -56,7 +56,7 @@ namespace snake {
         let snakeLength = 1
 
         let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
-        background.blit(0, 0, background.width, background.height, level_, 0, 0, w, h, true, false)
+        background.blit(0, 0, background.width, background.height, level, 0, 0, w, h, true, false)
         scene.setBackgroundImage(background);
 
         const breakableWallCol = 13;
@@ -91,7 +91,7 @@ namespace snake {
 
         for (let y = 0; y < h; ++y)
             for (let x = 0; x < w; ++x) {
-                let col = level_.getPixel(x, y);
+                let col = level.getPixel(x, y);
                 col = col === 15 ? 0 : col;
                 buffer.setUint8(y * w + x, col);
             }
