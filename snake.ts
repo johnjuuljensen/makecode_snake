@@ -51,7 +51,7 @@ namespace snake {
         let speed = defaultSpeed;
         let dw = scene.screenWidth() / w
         let dh = scene.screenHeight() / h
-        let growNext = 1, growRemain = 20
+        let growNext = 1, growRemain = 0
         let oldTime = 0
         let snakeLength = 1
 
