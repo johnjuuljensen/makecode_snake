@@ -29,10 +29,32 @@ namespace snake {
         return [x + d[0], y + d[1]];
     }
 
+    function lerp(v0: number, v1: number, delta: number) {
+        return v0 * (1 - delta) + v1 * delta;
+    }
+
+
+
     //% blockNamespace=snake
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
     export function setup(level_: Image) {
+        let w = level_.width
+        let h = level_.height
+        let x = w / 2
+        let y = h / 2
+        let tx = x
+        let ty = y
+        let oy = x
+        let ox = y
+        const defaultSpeed = 100;
+        let speed = defaultSpeed;
+        let dw = scene.screenWidth() / w
+        let dh = scene.screenHeight() / h
+        let growNext = 1, growRemain = 20
+        let oldTime = 0
+        let snakeLength = 1
+
         const breakableWallCol = 13;
         const foodCol = 14;
 
@@ -44,6 +66,7 @@ namespace snake {
         const addIfValid = (newDir: number) => {
             newDir = encodeVelocity(newDir, 1);
             if (newDir !== (dirQueue[dirQueue.length - 1] || curVelocity)) {
+                //speed = defaultSpeed;
                 dirQueue.push(newDir)
             }
         };
@@ -59,20 +82,6 @@ namespace snake {
             }
         });
 
-        let w = level_.width
-        let h = level_.height
-        let x = w / 2
-        let y = h / 2
-        let tx = x
-        let ty = y
-        let oy = x
-        let ox = y
-        let speed = 100;
-        let dw = scene.screenWidth() / w
-        let dh = scene.screenHeight() / h
-        let growNext = 0, growRemain = 20
-        let oldTime = 0
-        let snakeLength = 1
 
 
         let buffer: Buffer = Buffer.create(w * h);
@@ -137,10 +146,11 @@ namespace snake {
             [tx, ty] = applyVelocity(tx, ty, haleDir);
         }
 
+
         const tegnHoved = (dtime: number) => {
             const [dir] = decodeVelocity(curVelocity);
-            const tempX = x * dtime + ox * (1 - dtime);
-            const tempY = y * dtime + oy * (1 - dtime);
+            const tempX = ox + (x-ox)*dtime;
+            const tempY = oy + (y-oy)*dtime;
             background.blit(tempX * dw, tempY * dh, dw, dh, headPics[dir], 0, 0, dw, dh, false, false)
         }
 
@@ -149,10 +159,10 @@ namespace snake {
             let body = assets.image`bend`
             if (oldVelocity == curVelocity) {
                 body = oldVelocity < encodeVelocity(up, 1)
-                    ? (x % 2 ? bodyhu : bodyhe)
-                    : (y % 2 ? bodyvu : bodyve);
+                    ? (ox % 2 ? bodyhu : bodyhe)
+                    : (oy % 2 ? bodyvu : bodyve);
             }
-            background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, true, false)
+            background.blit(ox * dw, oy * dh, dw, dh, body, 0, 0, body.width, body.height, false, false)
         }
 
 
@@ -172,7 +182,7 @@ namespace snake {
         setFood()
         setFood()
         setFood()
-        game.consoleOverlay.setVisible(true)
+        //game.consoleOverlay.setVisible(true)
         game.onUpdate(function () {
             const time = game.runtime();
             if (oldTime === 0) {
@@ -180,10 +190,12 @@ namespace snake {
             }
             const [curDir] = decodeVelocity(curVelocity);
             const aboutToHitSomething =
-                bufGetDir(x, y, curVelocity) !== 0
-                || bufGetDir(x, y, encodeVelocity(curDir, 2));
-            speed = aboutToHitSomething ? 400 : 100;
-
+                !dirQueue.length
+                && safeCols.indexOf(bufGetDir(x, y, curVelocity)) === -1
+                //bufGetDir(x, y, curVelocity) !== 0
+                //|| bufGetDir(x, y, encodeVelocity(curDir, 2))
+                ;
+            speed = aboutToHitSomething ? defaultSpeed*10 : defaultSpeed;
             if (time - oldTime >= speed) {
                 oldTime = time
                 ox = x
@@ -220,6 +232,7 @@ namespace snake {
                     sletHale();
                 }
             }
+
             tegnKrop();
             tegnHoved((time - oldTime) / speed);
         })
