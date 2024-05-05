@@ -29,18 +29,12 @@ namespace snake {
         return [x + d[0], y + d[1]];
     }
 
-    function lerp(v0: number, v1: number, delta: number) {
-        return v0 * (1 - delta) + v1 * delta;
-    }
-
-
-
     //% blockNamespace=snake
     //% block="Setup level $level"
     //% level.shadow=screen_image_picker
     export function setup(level: Image) {
-        let w = level.width
-        let h = level.height
+        const w = level.width
+        const h = level.height
         let x = w / 2
         let y = h / 2
         let tx = x
@@ -49,11 +43,11 @@ namespace snake {
         let ox = y
         const defaultSpeed = 150;
         let speed = defaultSpeed;
-        let dw = scene.screenWidth() / w
-        let dh = scene.screenHeight() / h
-        let growNext = 1, growRemain = 0
+        const dw = scene.screenWidth() / w
+        const dh = scene.screenHeight() / h
+        let growNext = 1, growRemain = 2
         let oldTime = 0
-        let snakeLength = 1
+        let snakeLength = -1
 
         let background: Image = image.create(scene.screenWidth(), scene.screenHeight());
         background.blit(0, 0, background.width, background.height, level, 0, 0, w, h, true, false)
@@ -61,6 +55,7 @@ namespace snake {
 
         const breakableWallCol = 13;
         const foodCol = 14;
+        const backgroundCol = 15;
 
         const [left, right, up, down] = [0, 1, 2, 3];
         let dirQueue: number[] = [];
@@ -70,7 +65,6 @@ namespace snake {
         const addIfValid = (newDir: number) => {
             newDir = encodeVelocity(newDir, 1);
             if (newDir !== (dirQueue[dirQueue.length - 1] || curVelocity)) {
-                //speed = defaultSpeed;
                 dirQueue.push(newDir)
             }
         };
@@ -79,12 +73,12 @@ namespace snake {
         controller.down.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(down));
         controller.left.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(left));
         controller.right.onEvent(ControllerButtonEvent.Pressed, () => addIfValid(right));
-        controller.A.onEvent(ControllerButtonEvent.Pressed, () => {
-            if (!dirQueue.length) {
-                const [dir] = decodeVelocity(curVelocity);
-                dirQueue = [encodeVelocity(dir, 5), curVelocity];
-            }
-        });
+        // controller.A.onEvent(ControllerButtonEvent.Pressed, () => {
+        //     if (!dirQueue.length) {
+        //         const [dir] = decodeVelocity(curVelocity);
+        //         dirQueue = [encodeVelocity(dir, 5), curVelocity];
+        //     }
+        // });
 
 
         let buffer: Buffer = Buffer.create(w * h);
@@ -92,7 +86,7 @@ namespace snake {
         for (let y = 0; y < h; ++y)
             for (let x = 0; x < w; ++x) {
                 let col = level.getPixel(x, y);
-                col = col === 15 ? 0 : col;
+                col = col === backgroundCol ? 0 : col;
                 buffer.setUint8(y * w + x, col);
             }
 
@@ -105,13 +99,13 @@ namespace snake {
 
 
 
-        let headPics: ImageMap = {};
+        const headPics: ImageMap = {};
         headPics[up] = assets.image`head_v`;
         headPics[down] = assets.image`head_v`; headPics[down].flipY();
         headPics[left] = assets.image`head_h`;
         headPics[right] = assets.image`head_h`; headPics[right].flipX();
 
-         let safeCols = [0, foodCol, 15]
+        const safeCols = [0, foodCol, backgroundCol]
 
         const bodyve = assets.image`body_v`;
         const bodyvu = assets.image`body_v`; bodyvu.flipX();
@@ -142,15 +136,27 @@ namespace snake {
         const sletHale = () => {
             let haleDir = bufGet(tx, ty);
             bufSet(tx, ty, 0);
-            drawCell(tx, ty, 15);
+            drawCell(tx, ty, backgroundCol);
             [tx, ty] = applyVelocity(tx, ty, haleDir);
         }
 
+        const sletHalePartial = (f: number) => {
+            let haleVel = bufGet(tx, ty);
+            const [dir] = decodeVelocity(haleVel);
+            
+            const [xf, yf, wf, hf] =
+                dir === up ? [0, 1-f, dw, dh*f] :
+                dir === down ? [0, 0, dw, dh*f] :
+                dir === left ? [1-f, 0, dw*f, dh] :
+                [0, 0, dw*f, dh]; // dir === right ? 
 
-        const tegnHoved = (dtime: number) => {
+            background.fillRect((tx+xf) * dw, (ty+yf) * dh , Math.ceil(wf), Math.ceil(hf), backgroundCol);
+        }
+
+        const tegnHoved = (f: number) => {
             const [dir] = decodeVelocity(curVelocity);
-            const tempX = ox + (x-ox)*dtime;
-            const tempY = oy + (y-oy)*dtime;
+            const tempX = ox + (x-ox)*f;
+            const tempY = oy + (y-oy)*f;
             background.blit(tempX * dw, tempY * dh, dw, dh, headPics[dir], 0, 0, dw, dh, false, false)
         }
 
@@ -197,11 +203,18 @@ namespace snake {
                 //bufGetDir(x, y, curVelocity) !== 0
                 //|| bufGetDir(x, y, encodeVelocity(curDir, 2))
                 ;
-            speed = aboutToHitSomething ? defaultSpeed*10 : defaultSpeed;
+            {
+                const oldSpeed = speed;
+                speed = aboutToHitSomething ? defaultSpeed * 10 : defaultSpeed;
+                // Adjust oldTime so ftime stays monotomic
+
+                const ftime = (time - oldTime) / oldSpeed;
+                oldTime = time - ftime * speed;
+            }
+
+
             if (time - oldTime >= speed) {
-                oldTime = time
-                ox = x
-                oy = y
+                [ox, oy, oldTime] = [x, y, time]
                 move()
                 let ramtFarve = bufGet(x, y);
                 if (ramtFarve == foodCol) {
@@ -212,9 +225,9 @@ namespace snake {
                 } else if (ramtFarve == breakableWallCol) {
                     for (let i = 0; i <= 2; i++) {
                         sletHale()
-                        snakeLength += -1
+                        snakeLength -= 1;
                         if (snakeLength <= 1) {
-                            game.gameOver(false)
+                            game.gameOver(false);
                         }
                     }
                     if (snakeLength < 5) {
@@ -222,12 +235,14 @@ namespace snake {
                     }
                 } else if (ramtFarve != 0) {
                     info.setScore(snakeLength)
-                    game.gameOver(false)
+                    info.saveHighScore()
+                    game.gameOver(true)
                 }
                 if (growRemain > 0) {
                     growRemain--;
+                    const oldSnakeLength = snakeLength;
                     snakeLength++;
-                    if (snakeLength >= 5) {
+                    if (oldSnakeLength < 5 && snakeLength >= 5) {
                         background.replace(13, 10);
                     }
                 } else {
@@ -236,7 +251,9 @@ namespace snake {
             }
 
             tegnKrop();
-            tegnHoved((time - oldTime) / speed);
+            const ftime = (time - oldTime) / speed;
+            tegnHoved(ftime);
+            sletHalePartial(ftime);
         })
     }
 }

@@ -1,3 +1,6 @@
-game.setGameOverEffect(false, effects.none)
+game.setGameOverMessage(true, "Slangelængde")
+game.setGameOverEffect(true, effects.none)
+game.setGameOverPlayable(true, music.melodyPlayable(music.footstep), false)
 game.setGameOverPlayable(false, music.melodyPlayable(music.footstep), false)
+game.setGameOverScoringType(game.ScoringType.HighScore)
 snake.setup(assets.image`level_2`)
